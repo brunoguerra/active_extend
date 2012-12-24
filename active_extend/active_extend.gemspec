@@ -7,11 +7,11 @@ require "active_extend/version"
 Gem::Specification.new do |s|
   s.name        = "active_extend"
   s.version     = ActiveExtend::VERSION
-  s.authors     = ["TODO: Bruno Guerra"]
-  s.email       = ["TODO: bruno@woese.com"]
-  s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of ActiveExtend."
-  s.description = "TODO: Description of ActiveExtend."
+  s.authors     = ["Bruno Guerra"]
+  s.email       = ["bruno@woese.com"]
+  s.homepage    = "http://www.woese.com"
+  s.summary     = "many cool behaviors for active_model"
+  s.description = "many cool behaviors for active_model."
 
   s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]
