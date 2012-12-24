@@ -1,7 +1,5 @@
 
-require "active_extend/active_disable"
+require "active_extend/active_disablable"
 
 module ActiveExtend
-  
-  matrr_accessible :modules
 end

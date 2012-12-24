@@ -1,5 +1,5 @@
 
-require 'devise/orm/active_record'
+#require 'devise/orm/active_record'
 
 module ActiveExtend
   module ActiveDisablable
