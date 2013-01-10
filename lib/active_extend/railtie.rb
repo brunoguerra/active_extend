@@ -4,7 +4,7 @@ require 'rails'
 module ActiveExtend
   class Railtie < Rails::Railtie
     rake_tasks do
-      load File.path_expand('../../tasks/active_extends_tasks.task'
+      load File.expand_path('../../tasks/external_migrate.rake', __FILE__)
     end
   end
 end

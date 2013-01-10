@@ -1,5 +1,4 @@
 
-require 'spreadsheet'
 require 'active_support'
 
 module ExternalMigration
