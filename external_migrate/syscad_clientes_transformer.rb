@@ -1,13 +1,13 @@
 #!/bin/env ruby
 # encoding: utf-8
 
-require "active_migration/transformer/grouped_field_fixed_spelling"
-require "active_migration/dictionary"
-require "active_migration/spelling_fix"
+require "external_migration/transformer/grouped_field_fixed_spelling"
+require "external_migration/dictionary"
+require "external_migration/spelling_fix"
 
 class SyscadClientesTransformer
   
-  include ActiveMigration::Transformer
+  include ExternalMigration::Transformer
   include ApplicationHelper
   
   def initialize(schema)
@@ -15,11 +15,11 @@ class SyscadClientesTransformer
     
     @domain_name = "clientes"
     
-    @district_dictionary = ActiveMigration::Dictionary.new File.expand_path("../cache/bairros_dictionary.yml", __FILE__)
-    @state_dictionary = ActiveMigration::Dictionary.new File.expand_path("../cache/estados_dictionary.yml", __FILE__)
-    @city_dictionary = ActiveMigration::Dictionary.new File.expand_path("../cache/cidades_dictionary.yml", __FILE__)
+    @district_dictionary = ExternalMigration::Dictionary.new File.expand_path("../cache/bairros_dictionary.yml", __FILE__)
+    @state_dictionary = ExternalMigration::Dictionary.new File.expand_path("../cache/estados_dictionary.yml", __FILE__)
+    @city_dictionary = ExternalMigration::Dictionary.new File.expand_path("../cache/cidades_dictionary.yml", __FILE__)
     
-    @emails_fixer = ActiveMigration::SpellingFix.new File.expand_path("../cache/emails_rules.yml", __FILE__)
+    @emails_fixer = ExternalMigration::SpellingFix.new File.expand_path("../cache/emails_rules.yml", __FILE__)
     
     @ignore_record_error = true
   end

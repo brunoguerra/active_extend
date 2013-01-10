@@ -77,7 +77,7 @@ end
 def build_schemas_tmp_classes()
   eval %q{
     class MigrationTestDistrictTransformer
-      include ActiveMigration::Transformer
+      include ExternalMigration::Transformer
       
       def initialize(schema)
         
@@ -93,7 +93,7 @@ def build_schemas_tmp_classes()
   
   eval %q{
     class MigrationActivityTransformer
-      include ActiveMigration::Transformer
+      include ExternalMigration::Transformer
       
       def initialize(schema)
         

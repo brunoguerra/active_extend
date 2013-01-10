@@ -1,17 +1,17 @@
 
-require "active_migration/transformer/grouped_field_fixed_spelling"
-require "active_migration/dictionary"
+require "external_migration/transformer/grouped_field_fixed_spelling"
+require "external_migration/dictionary"
 
-class SyscadCidadesTransformer < ActiveMigration::Transformer::GroupedFieldFixedSpelling
+class SyscadCidadesTransformer < ExternalMigration::Transformer::GroupedFieldFixedSpelling
   
-  include ActiveMigration::Transformer
+  include ExternalMigration::Transformer
   include ApplicationHelper
   
   def initialize(schema)
     super schema
     
     @domain_name = "cidades"
-    @state_dictionary = ActiveMigration::Dictionary.new File.expand_path("../cache/estados_dictionary.yml", __FILE__)
+    @state_dictionary = ExternalMigration::Dictionary.new File.expand_path("../cache/estados_dictionary.yml", __FILE__)
   end
   
   def transform(row)

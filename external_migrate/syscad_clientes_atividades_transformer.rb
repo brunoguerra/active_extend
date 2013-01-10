@@ -1,17 +1,17 @@
 # encoding: utf-8
-require "active_migration/transformer/grouped_field_fixed_spelling"
-require "active_migration/dictionary"
+require "external_migration/transformer/grouped_field_fixed_spelling"
+require "external_migration/dictionary"
 
 class SyscadClientesAtividadesTransformer
   
-  include ActiveMigration::Transformer
+  include ExternalMigration::Transformer
   include ApplicationHelper
   
   def initialize(schema)
     super schema
     
     @domain_name = "clientes_atividades"
-    @atividades_dictionary = ActiveMigration::Dictionary.new File.expand_path("../cache/atividades_dictionary.yml", __FILE__)
+    @atividades_dictionary = ExternalMigration::Dictionary.new File.expand_path("../cache/atividades_dictionary.yml", __FILE__)
   end
   
   def transform(row)    

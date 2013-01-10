@@ -1,9 +1,9 @@
 
-module ActiveMigration
+module ExternalMigration
   module Transformer
     class GroupedFieldFixedSpelling
       
-      include ActiveMigration::Transformer
+      include ExternalMigration::Transformer
       include ApplicationHelper
       
       attr_accessor :domain_name, :domain_dest

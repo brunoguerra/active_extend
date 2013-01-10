@@ -1,10 +1,10 @@
 
-require "active_migration/transformer/grouped_field_fixed_spelling"
-require "active_migration/dictionary"
+require "external_migration/transformer/grouped_field_fixed_spelling"
+require "external_migration/dictionary"
 
 class SyscadSegmentosTransformer
   
-  include ActiveMigration::Transformer
+  include ExternalMigration::Transformer
   include ApplicationHelper
   
   def initialize(schema)

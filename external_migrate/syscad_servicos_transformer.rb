@@ -1,6 +1,6 @@
 class SyscadServicosTransformer
   
-  include ActiveMigration::Transformer
+  include ExternalMigration::Transformer
   include ApplicationHelper
   
   def initialize(schema)

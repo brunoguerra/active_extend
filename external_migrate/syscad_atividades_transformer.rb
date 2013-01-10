@@ -1,18 +1,18 @@
 
-require "active_migration/transformer/grouped_field_fixed_spelling"
-require "active_migration/dictionary"
-require "active_migration/converters/rtf_to_html"
+require "external_migration/transformer/grouped_field_fixed_spelling"
+require "external_migration/dictionary"
+require "external_migration/converters/rtf_to_html"
 
 class SyscadAtividadesTransformer
   
-  include ActiveMigration::Transformer
+  include ExternalMigration::Transformer
   include ApplicationHelper
   
   def initialize(schema)
     super schema
     
     @domain_name = "atividades"
-    @segmentos_dictionary = ActiveMigration::Dictionary.new File.expand_path("../cache/segmentos_dictionary.yml", __FILE__)
+    @segmentos_dictionary = ExternalMigration::Dictionary.new File.expand_path("../cache/segmentos_dictionary.yml", __FILE__)
     
     @atividades_dictionary = {}
   end
@@ -28,7 +28,7 @@ class SyscadAtividadesTransformer
   
   def transform_notes(row)
     if !row[:notes].nil? && !row[:notes].empty?
-      row[:notes] = ActiveMigration::Converters::RtfToHtml.new.parse(row[:notes]).encode(Encoding::US_ASCII, :invalid => :replace, :undef => :replace, :replace => '')
+      row[:notes] = ExternalMigration::Converters::RtfToHtml.new.parse(row[:notes]).encode(Encoding::US_ASCII, :invalid => :replace, :undef => :replace, :replace => '')
     end
   end
   

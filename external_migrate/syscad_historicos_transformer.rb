@@ -1,9 +1,9 @@
 
-require "active_migration/dictionary"
+require "external_migration/dictionary"
 
 class SyscadHistoricosTransformer
   
-  include ActiveMigration::Transformer
+  include ExternalMigration::Transformer
   include ApplicationHelper
   
   def initialize(schema)
@@ -11,8 +11,8 @@ class SyscadHistoricosTransformer
     
     @domain_name = "historico"
     
-    @servicos_dictionary = ActiveMigration::Dictionary.new File.expand_path("../cache/servicos_dictionary.yml", __FILE__)
-    @consultores_dictionary = ActiveMigration::Dictionary.new File.expand_path("../cache/consultores_dictionary.yml", __FILE__)
+    @servicos_dictionary = ExternalMigration::Dictionary.new File.expand_path("../cache/servicos_dictionary.yml", __FILE__)
+    @consultores_dictionary = ExternalMigration::Dictionary.new File.expand_path("../cache/consultores_dictionary.yml", __FILE__)
     
     @user_default = User.first
   end

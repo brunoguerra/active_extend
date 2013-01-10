@@ -1,9 +1,9 @@
 
-require "active_migration/transformer/grouped_field_fixed_spelling"
+require "external_migration/transformer/grouped_field_fixed_spelling"
 
-class SyscadEstadosTransformer < ActiveMigration::Transformer::GroupedFieldFixedSpelling
+class SyscadEstadosTransformer < ExternalMigration::Transformer::GroupedFieldFixedSpelling
   
-  include ActiveMigration::Transformer
+  include ExternalMigration::Transformer
   include ApplicationHelper
   
   def initialize(schema)

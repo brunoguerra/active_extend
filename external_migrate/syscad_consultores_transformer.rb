@@ -1,6 +1,6 @@
 class SyscadConsultoresTransformer
   
-  include ActiveMigration::Transformer
+  include ExternalMigration::Transformer
   include ApplicationHelper
   
   def initialize(schema)

@@ -1,4 +1,4 @@
 
-require "active_migration/migration"
-require 'active_migration/schemas'
+require "external_migration/migration"
+require 'external_migration/schemas'
 
