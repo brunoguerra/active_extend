@@ -39,13 +39,23 @@ module ExternalMigration
             
             raise ActiveMigartionSchemasError.new("Failing Migrate Schemas: %s" % key) if not result
             
-            msg = "Ending: %s." % key
+            msg = "Ending: %s." % @migration_name
             Rails.logger.info msg
             puts msg
           end
         end
       end
     
+        def run_migration_job
+          transformer_from_schema()
+
+          case @schema[:type]
+            when :SCHEMA
+              self.migrate_schema
+            when :CUSTOM
+              self.migrate_custom
+          end
+        end
 
       def eval_class(class_str)
         begin
@@ -57,7 +67,12 @@ module ExternalMigration
       end
 
       def transformer_class=(class_str)
-        file_name = class_str.underscore + ".rb"
+        
+        path = class_str.split("::")
+        
+        
+        path.map!(&:underscore)
+        file_name = path.join("/") + ".rb"
       
         class_found = eval_class(class_str)
       
@@ -99,17 +114,6 @@ module ExternalMigration
         end
       
         files
-      end
-    
-      def run_migration_job
-        transformer_from_schema
-        
-        case @schema[:type]
-          when :SCHEMA
-            self.migrate_schema
-          when :CUSTOM
-            self.migrate_custom
-        end
       end
     
       def migrate_schema
