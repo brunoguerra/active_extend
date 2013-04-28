@@ -65,6 +65,10 @@ module ExternalMigration
     
   end  
   
+  module Decoder
+    def migrate!
+    end
+  end
   
   ##
   # == Class Migration
@@ -83,6 +87,7 @@ module ExternalMigration
     # load yml schemas from and to
     def load_schema(url)
       schema = YAML::load(File.open(url))
+      puts "loading #{schema[:from].to_yaml}"
       self.schema_from = schema[:from]
       self.schema_to = schema[:to]
     end
@@ -105,7 +110,11 @@ module ExternalMigration
     
         # TODO: Make flexible configurable and more input formats
         if @schema_from[:format].to_s.to_sym == :XLS
-            xls_migrate()
+          xls_migrate()
+        elsif @schema_from[:format].to_s.to_sym == :TXT_FIXED
+          decoder = TextFixed.new(@schema_from)
+          decoder.migration = self
+          decoder.migrate!
         end
       
         end_migration()
@@ -114,6 +123,36 @@ module ExternalMigration
       res = @transformer.end_transaction(@schema_from, @schema_to) unless @transformer.nil?
       
       return true
+    end
+    
+    def migreate_row!(row_to)
+      begin
+          #transform row to @schema_to
+          res = true
+          res = @transformer.transform(row_to) unless @transformer.nil?
+          
+          if (res!=:ignore)
+            res = res==true && send_row_to_schema(row_to)
+            raise_migration if (res==false)
+            
+            @transformer.after_row_saved(row_to, @last_object) unless @transformer.nil?
+          end
+          
+          @line+=1
+        end
+      rescue Exception => e
+        line = @line.nil? ? 0 : @line
+        column = @column.nil? ? 0 : @column
+        
+        obj = @last_object || (e.respond_to?(:record) && (e.record)) || nil
+        
+        if !obj.nil?
+          raise ActiveMigartionDataSourceError.new obj.errors.to_yaml.to_s.concat("Failing import excel source format from %s. %d:%d [ignored head]. " % [@schema_from[:url], column, line]).concat(e.message).concat("\n----"+e.backtrace.to_yaml)         
+        else
+          raise ActiveMigartionDataSourceError.new ("Failing import excel source format from %s. %d:%d [ignored head]. " % [@schema_from[:url], column, line]).concat(e.message).concat("\n----"+e.backtrace.to_yaml)
+        end
+      end
+
     end
     
     
@@ -136,23 +175,20 @@ module ExternalMigration
             @column+=1
           end
           
-          #transform row to @schema_to
-          res = true
-          res = @transformer.transform(row_to) unless @transformer.nil?
-          
-          if (res!=:ignore)
-            res = res==true && send_row_to_schema(row_to)
-            raise_migration if (res==false)
-            
-            @transformer.after_row_saved(row_to, @last_object) unless @transformer.nil?
-          end
-          
+          self.migrate_row! row_to
           @line+=1
         end
       rescue Exception => e
         line = @line.nil? ? 0 : @line
         column = @column.nil? ? 0 : @column
-        raise ActiveMigartionDataSourceError.new ("Failing import excel source format from %s. %d:%d [ignored head]. " % [@schema_from[:url], column, line]).concat(e.message).concat("\n----"+e.backtrace.to_yaml)
+        
+        obj = @last_object || (e.respond_to?(:record) && (e.record)) || nil
+        
+        if !obj.nil?
+          raise ActiveMigartionDataSourceError.new obj.errors.to_yaml.to_s.concat("Failing import excel source format from %s. %d:%d [ignored head]. " % [@schema_from[:url], column, line]).concat(e.message).concat("\n----"+e.backtrace.to_yaml)         
+        else
+          raise ActiveMigartionDataSourceError.new ("Failing import excel source format from %s. %d:%d [ignored head]. " % [@schema_from[:url], column, line]).concat(e.message).concat("\n----"+e.backtrace.to_yaml)
+        end
       end
     end
     
@@ -172,16 +208,19 @@ module ExternalMigration
     end
   
     def send_row_to_schema(row)
-      if @schema_to[:format].to_sym == :ACTIVE_RECORD
       
+      if @schema_to[:format].to_sym == :ACTIVE_RECORD
+        
         # TODO: optimize on initialize migration
         class_schema_to = eval @schema_to[:url]
-      
+        
         @last_object = class_schema_to.new(row)
         res = @last_object.save
       
         if (!res)
-          raise AciteMigrationInvalidRecordError.new "[Schema:%s] Error on send to ACTIVE_RECORD %s. \n%s \nrow: \n%s" % [@name, @schema_to[:url], @last_object.errors.to_yaml, row.to_yaml]
+          msg = "[Schema:%s] Error on send to ACTIVE_RECORD %s. \n%s \nrow: \n%s" % [@name, @schema_to[:url], @last_object.errors.to_yaml, row.to_yaml]
+          Rails.logger.error msg
+          raise AciteMigrationInvalidRecordError.new msg
         end
       
         return res

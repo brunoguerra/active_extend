@@ -25,7 +25,7 @@ module ActiveExtend
     def disable
       self.enabled = false
     end
-  
+    
     def enable
       self.enabled = true
     end

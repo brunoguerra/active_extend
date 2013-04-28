@@ -84,7 +84,7 @@ module ExternalMigration
     
         #cached path
         @cache_path = "db/external_migrate/cache/" 
-        Dir.mkdir path if not Dir.exists? @cache_path
+        Dir.mkdir @cache_path if not Dir.exists? @cache_path
     
         puts_on_file @cache_path + "#{@domain_name}_dictionary.yml", @domain_dictionary.to_yaml
         #puts_on_file @cache_path + "#{@domain_name}_raw.csv", @rows.map { |i| i.values.join(",")}.join("\n")
