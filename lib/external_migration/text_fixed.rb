@@ -41,7 +41,6 @@ module ExternalMigration
           line_index += column_prop[:length]
         end
         row.keys.each {|k| row.delete k if k.to_s =~ /ignore\d+/ }
-        puts row.to_yaml
         @migration.migrate_row! row
       end
       file.close
