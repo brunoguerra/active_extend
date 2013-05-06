@@ -3,6 +3,7 @@ require 'spreadsheet'
 
 #main
 require "external_migration/migration"
+require "external_migration/migration_processor"
 
 #utils
 require "external_migration/dictionary"

@@ -16,12 +16,17 @@ module ExternalMigration
     #   transformer: class will be called to data transformations
     class SchemasMigration
     
-      attr_accessor :transformer, :schemas
+      attr_accessor :transformer, :schemas, :processor, :verbose
     
-      def initialize(file_schemas)
-        raise "Invalid File: should not null!" if file_schemas.nil?
-        raise "Invalid File: should not exists!" if not File.exists?(file_schemas)
-        @schemas = YAML::load(File.open(file_schemas))
+      def initialize(file_schemas, schemas=nil)
+        if schemas.nil?
+          raise "Invalid File: should not null!" if file_schemas.nil?
+          raise "Invalid File: should not exists!" if not File.exists?(file_schemas)
+          @schemas = YAML::load(File.open(file_schemas))
+        else
+          @schemas = schemas
+        end
+        @verbose = true
       end
       
       def migrate!
@@ -33,7 +38,7 @@ module ExternalMigration
             
             msg = "Starting external migration: %s..." % @migration_name
             Rails.logger.info msg
-            puts msg
+            puts msg if verbose
             
             result = run_migration_job
             
@@ -41,21 +46,21 @@ module ExternalMigration
             
             msg = "Ending: %s." % @migration_name
             Rails.logger.info msg
-            puts msg
+            puts msg if verbose
           end
         end
       end
     
-        def run_migration_job
-          transformer_from_schema()
-
-          case @schema[:type]
-            when :SCHEMA
-              self.migrate_schema
-            when :CUSTOM
-              self.migrate_custom
-          end
+      def run_migration_job
+        transformer_from_schema()
+        
+        case @schema[:type]
+          when :SCHEMA
+            self.migrate_schema
+          when :CUSTOM
+            self.migrate_custom
         end
+      end
 
       def eval_class(class_str)
         begin
@@ -122,6 +127,7 @@ module ExternalMigration
         migration.schema_from = @schema[:from]
         migration.schema_to   = @schema[:to]
         migration.transformer = @transformer if not @transformer.nil?
+        migration.processor   = @processor   if not @processor.nil?
         #rock!
         migration.migrate!
       end

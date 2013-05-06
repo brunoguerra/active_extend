@@ -24,7 +24,8 @@ module ExternalMigration
     ##
     # called on start of migration
     def begin(schema_from, schema_to)
-      # nothing      
+      @schema_from = schema_from
+      @schema_to = schema_to
     end
     
     ##
@@ -76,7 +77,7 @@ module ExternalMigration
   # Migrate data between  data source and transforme to destination 
   #
   class Migration
-    attr_accessor :schema_from, :schema_to, :transformer, :name
+    attr_accessor :schema_from, :schema_to, :transformer, :name, :processor
   
     # constructor
     def initialize(schema_url=nil)
@@ -87,7 +88,6 @@ module ExternalMigration
     # load yml schemas from and to
     def load_schema(url)
       schema = YAML::load(File.open(url))
-      puts "loading #{schema[:from].to_yaml}"
       self.schema_from = schema[:from]
       self.schema_to = schema[:to]
     end
@@ -105,6 +105,8 @@ module ExternalMigration
       
       res = @transformer.begin_transaction(@schema_from, @schema_to) unless @transformer.nil?
       
+      @line = 0
+      
       ActiveRecord::Base.transaction do      
         begin_migration()
     
@@ -112,7 +114,7 @@ module ExternalMigration
         if @schema_from[:format].to_s.to_sym == :XLS
           xls_migrate()
         elsif @schema_from[:format].to_s.to_sym == :TXT_FIXED
-          decoder = TextFixed.new(@schema_from)
+          decoder = ExternalMigration::TextFixed.new(@schema_from)
           decoder.migration = self
           decoder.migrate!
         end
@@ -125,20 +127,22 @@ module ExternalMigration
       return true
     end
     
-    def migreate_row!(row_to)
+    def migrate_row!(row_to)
+      @line += 1
       begin
+        if @processor.nil?
           #transform row to @schema_to
           res = true
           res = @transformer.transform(row_to) unless @transformer.nil?
-          
+        
           if (res!=:ignore)
             res = res==true && send_row_to_schema(row_to)
             raise_migration if (res==false)
-            
+          
             @transformer.after_row_saved(row_to, @last_object) unless @transformer.nil?
           end
-          
-          @line+=1
+        else
+          @processor.migrate_row row_to
         end
       rescue Exception => e
         line = @line.nil? ? 0 : @line
@@ -162,8 +166,6 @@ module ExternalMigration
         # TODO: make others workbook accessible by configuration
         sheet = @xls.worksheet 0
     
-        @line = 0
-    
         # ignore head line
         sheet.each 1 do |row|
           @column = 0
@@ -176,7 +178,6 @@ module ExternalMigration
           end
           
           self.migrate_row! row_to
-          @line+=1
         end
       rescue Exception => e
         line = @line.nil? ? 0 : @line
