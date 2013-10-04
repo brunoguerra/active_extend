@@ -10,8 +10,9 @@ Gem::Specification.new do |s|
   s.authors     = ["Bruno Guerra"]
   s.email       = ["bruno@woese.com"]
   s.homepage    = "http://www.woese.com"
-  s.summary     = "many cool behaviors for active_model"
-  s.description = "many cool behaviors for active_model."
+  s.license     = "MIT"
+  s.summary     = "many cool behaviors for ActiveRecord"
+  s.description = "many cool behaviors for Activerecord like ActiveDisable, Hash.keys_to_sym and more"
 
   s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]

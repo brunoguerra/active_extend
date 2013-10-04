@@ -21,7 +21,17 @@ module ExternalMigration
     end
     
     def schema=(schema)
-      @schema = schema
+      
+      if schema[:multiple_lines] == :true
+        @schema_multiple_lines = true
+        @schema_line_index = -1
+        @schema = schema
+        @schema_lines  = @schema[:columns].keys
+        @schema[:lines] = @schema[:columns] #backup layout
+        next_schema_line
+      else
+        @schema  = schema
+      end
     end
     
     def migrate!
@@ -42,9 +52,19 @@ module ExternalMigration
         end
         row.keys.each {|k| row.delete k if k.to_s =~ /ignore\d+/ }
         @migration.migrate_row! row
+
+        next_schema_line
       end
       file.close
       
+    end
+
+    def next_schema_line
+      if @schema_multiple_lines
+        @schema_line_index += 1
+        @schema_line_index = 0 if @schema_line_index >= @schema_lines.size
+        @schema[:columns] = @schema[:lines][@schema_lines[@schema_line_index]]
+      end
     end
     
   end

@@ -16,10 +16,28 @@ module ExternalMigration
     
   end
   
-  ##
-  # Module Data Transformation
+  # Module for Data Transformation
   # When passing schema file or struct, the data between datasources
-  # needs a transformations 
+  # needs a transformations.
+  #  # called on start of transaction
+  #  def begin_transaction(schema_from, schema_to)
+  #  
+  #  # definily obrigatory to define this method!<br>
+  #  # Transform from data row to destinate data row 
+  #  # @result
+  #  #   - true means continue with your job
+  #  #   - false stop job now!
+  #  #   - :ignore ignore this chunk
+  #  def transform(row)
+  #  
+  #  # called on ending migration
+  #  def end(schema_from, schema_to)
+  #  
+  #  # called on ending transaction
+  #  def end_transaction(schema_from, schema_to)
+  #
+  #  def after_row_saved(row, object)
+  # @abstract
   module Transformer
     ##
     # called on start of migration
@@ -27,67 +45,43 @@ module ExternalMigration
       @schema_from = schema_from
       @schema_to = schema_to
     end
-    
-    ##
-    # called on start of transaction
-    def begin_transaction(schema_from, schema_to)
-      # nothing
-    end
-    
-    ##
-    # transform from data row to destinate data row 
-    # @result true, false or :ignore to ignore this row
-    def transform(row)
-      raise "Implements transform method!"
-    end
-    
-    ##
-    # called on ending migration
-    def end(schema_from, schema_to)
-      # nothing
-    end
-    
-    ##
-    # called on ending transaction
-    def end_transaction(schema_from, schema_to)
-      # nothing
-    end
-    
-    ##
-    #
-    def after_row_saved(row, object)
-      #
-    end
-    
+
+    # Ignore a field starts with ignore(.*): assumes length fields
+    # or separator
+    # @return [Hash] row without ignores 
+    # @example
+    #   schema:
+    #     columns:
+    #       digit:
+    #         format: N
+    #         length: 10
+    #       ignore_not_need_this__really__so_i_ll_not_touch_this:
+    #         length: 10000
     def transform_ignore_fields(row)
-      #delete ignore
       row.reject! { |key,value| key.to_s.start_with?("ignore") }
     end
     
   end  
   
+  #Interface for your decoder
   module Decoder
     def migrate!
     end
   end
   
-  ##
-  # == Class Migration
-  # 
+
   # Migrate data between  data source and transforme to destination 
-  #
   class Migration
     attr_accessor :schema_from, :schema_to, :transformer, :name, :processor
-  
+
     # constructor
     def initialize(schema_url=nil)
       self.load_schema(schema_url) unless schema_url.nil?
     end
-    
-    ##
+
     # load yml schemas from and to
     def load_schema(url)
-      schema = YAML::load(File.open(url))
+      schema = YAML::load(File.open(url)).keys_to_sym
       self.schema_from = schema[:from]
       self.schema_to = schema[:to]
     end
@@ -111,9 +105,10 @@ module ExternalMigration
         begin_migration()
     
         # TODO: Make flexible configurable and more input formats
-        if @schema_from[:format].to_s.to_sym == :XLS
+        case @schema_from[:format].to_s.to_sym 
+        when :XLS
           xls_migrate()
-        elsif @schema_from[:format].to_s.to_sym == :TXT_FIXED
+        when :TXT_FIXED
           decoder = ExternalMigration::TextFixed.new(@schema_from)
           decoder.migration = self
           decoder.migrate!
