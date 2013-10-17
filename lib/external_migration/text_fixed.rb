@@ -2,27 +2,39 @@
 
 module ExternalMigration
   
-  #
-  # Schema format:
-  #
-  # format: TXT_FIXED
-  # url: text to read
-  # ignore_lines: default 1
+  # Parser to Fixed Data
+  # <br>
+  # Specifing endpoint with format: TXT_FIXED
+  # @attr url File to read content
   # encoding: default 'windows-1251:utf-8'
+  # @attr schema to defining layout of file to parse
+  #   @example format: TXT_FIXED
+  #     columns:
+  #       name:
+  #         format: S
+  #         length: 10
+  #       date:
+  #         format: D YYYYMMDD
+  #         length: 8
+  #       description:
+  #         format: S
+  #         length: 120
+  # @attr migration delegate object to receive lines parsed
+  # @attr [Fixnum] ignore_lines number of lines to ignore. Default true.
+  # @attr verbosing verbose mode (on|off)
+
   class TextFixed
     include ExternalMigration::Decoder
     
-    attr_accessor :migration, :ignore_lines
+    attr_accessor :migration, :ignore_lines, :verbosing
     
     def initialize(schema)
       self.schema = schema
-      @ignore_lines = schema[:ignore_lines] || 1
-      @enconding = schema[:encoding] || 'windows-1251:utf-8'
     end
     
     def schema=(schema)
       
-      if schema[:multiple_lines] == :true
+      if schema[:multiple_lines] == true
         @schema_multiple_lines = true
         @schema_line_index = -1
         @schema = schema
@@ -32,14 +44,18 @@ module ExternalMigration
       else
         @schema  = schema
       end
+      @ignore_lines = schema[:ignore_lines].nil? ?  1 : schema[:ignore_lines].to_i
+      @verbosing = schema[:verbose]
+      @enconding = schema[:encoding] || 'windows-1251:utf-8'
     end
     
     def migrate!
-      puts "opening file #{@schema[:url]}"
+      puts "opening file #{@schema[:url]}" if @verbosing
       file = File.open(Rails.root.join(@schema[:url]), "r:#{@enconding}")
       file.each_line do |line|
         if @ignore_lines>0
           @ignore_lines -= 1
+          puts "ignore line" if @verbosing
           next line
         end
         
@@ -47,7 +63,7 @@ module ExternalMigration
         line_index = 0
         @schema[:columns].each do |column, column_prop|
           row[column.to_sym] = line[line_index..(line_index+column_prop[:length]-1)]
-          row[column.to_sym].strip! if @schema[:strip_columns] == :true && !row[column.to_sym].nil?
+          row[column.to_sym].strip! if @schema[:strip_columns] && !row[column.to_sym].nil?
           line_index += column_prop[:length]
         end
         row.keys.each {|k| row.delete k if k.to_s =~ /ignore\d+/ }

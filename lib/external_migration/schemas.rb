@@ -22,7 +22,7 @@ module ExternalMigration
         if schemas.nil?
           raise "Invalid File: should not null!" if file_schemas.nil?
           raise "Invalid File: should not exists!" if not File.exists?(file_schemas)
-          @schemas = YAML::load(File.open(file_schemas))
+          @schemas = YAML::load(File.open(file_schemas)).keys_to_sym
         else
           @schemas = schemas
         end
